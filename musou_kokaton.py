@@ -290,7 +290,8 @@ def main():
                 return 0
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 beams.add(Beam(bird))
-            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN and score.value >= 0:
+            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN and score.value >= 10:
+                score.value -= 10
                 grav.add(Gravity(400))
                 
         screen.blit(bg_img, [0, 0])
