@@ -141,14 +141,14 @@ class Beam(pg.sprite.Sprite):
     """
     ビームに関するクラス
     """
-    def __init__(self, bird: Bird):
+    def __init__(self, bird: Bird, angle0 = 0):
         """
         ビーム画像Surfaceを生成する
         引数 bird：ビームを放つこうかとん
         """
         super().__init__()
         self.vx, self.vy = bird.dire
-        angle = math.degrees(math.atan2(-self.vy, self.vx))
+        angle = math.degrees(math.atan2(-self.vy, self.vx)) + angle0
         self.image = pg.transform.rotozoom(pg.image.load(f"fig/beam.png"), angle, 2.0)
         self.vx = math.cos(math.radians(angle))
         self.vy = -math.sin(math.radians(angle))
@@ -165,6 +165,32 @@ class Beam(pg.sprite.Sprite):
         self.rect.move_ip(self.speed*self.vx, self.speed*self.vy)
         if check_bound(self.rect) != (True, True):
             self.kill()
+
+
+class NeoBeam(pg.sprite.Sprite):
+    """
+    複数のビームに関するクラス
+    """
+    def __init__(self, bird: Bird, num = 5):
+        """
+        引数 bird：ビームを放つこうかとん
+        引数 num：ビーム数
+        """
+        super().__init__()
+        self.num = num
+        self.ang = []
+
+    def update(self):
+        step = range(-50, +51, (int(100/(self.num-1))))
+        self.ang = [i for i in step]
+    
+    def gen_beams(self):
+        """
+        Beamインスタンスを生成し、リストを返す
+        """
+        print(self.ang)
+        return self.ang
+
 
 
 class Explosion(pg.sprite.Sprite):
@@ -254,6 +280,8 @@ def main():
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
 
+    neobeam = NeoBeam(bird)
+
     tmr = 0
     clock = pg.time.Clock()
     while True:
@@ -262,7 +290,12 @@ def main():
             if event.type == pg.QUIT:
                 return 0
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                beams.add(Beam(bird))
+                if key_lst[pg.K_LSHIFT]:
+                    for ang in neobeam.gen_beams():
+                        beams.add(Beam(bird, ang))
+                else:
+                    beams.add(Beam(bird))
+
         screen.blit(bg_img, [0, 0])
 
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
@@ -288,9 +321,12 @@ def main():
             pg.display.update()
             time.sleep(2)
             return
+        
+        print(beams)
 
         bird.update(key_lst, screen)
         beams.update()
+        neobeam.update()
         beams.draw(screen)
         emys.update()
         emys.draw(screen)
