@@ -149,10 +149,11 @@ class Bomb(pg.sprite.Sprite):
         爆弾を速度ベクトルself.vx, self.vyに基づき移動させる
         引数 screen：画面Surface
         """
-        self.rect.move_ip(self.speed*self.vx, self.speed*self.vy)
-        if check_bound(self.rect) != (True, True):
+        self.life -= 1
+        self.image = self.imgs[self.life//10%2]
+        if self.life < 0:
             self.kill()
-        
+            
 
 
 class Beam(pg.sprite.Sprite):
