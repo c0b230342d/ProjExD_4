@@ -48,6 +48,10 @@ class Bird(pg.sprite.Sprite):
         pg.K_RIGHT: (+1, 0),
     }
 
+    delta2 = {  # self.speedの変化の辞書
+        pg.K_LSHIFT: 20
+    }
+
     def __init__(self, num: int, xy: tuple[int, int]):
         """
         こうかとん画像Surfaceを生成する
@@ -93,6 +97,15 @@ class Bird(pg.sprite.Sprite):
             if key_lst[k]:
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
+        
+        for k, mv in __class__.delta2.items():
+            if key_lst[k]:
+                # 左Shiftキーが押されたら、speedを20にする
+                self.speed = 20
+            else:
+                # 押されていないなら、10にする
+                self.speed = 10
+        
         self.rect.move_ip(self.speed*sum_mv[0], self.speed*sum_mv[1])
         if check_bound(self.rect) != (True, True):
             self.rect.move_ip(-self.speed*sum_mv[0], -self.speed*sum_mv[1])
