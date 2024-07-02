@@ -140,6 +140,7 @@ class Bomb(pg.sprite.Sprite):
         self.rect.centerx = emy.rect.centerx
         self.rect.centery = emy.rect.centery+emy.rect.height//2
         self.speed = 6
+        self.state = "active"
 
     def update(self):
         """
@@ -281,6 +282,37 @@ class Score:
         screen.blit(self.image, self.rect)
 
 
+class EMP:
+    """
+    電磁パルス（EMP）に関するクラス
+    """
+    def __init__(self, enemies: pg.sprite.Group, bombs: pg.sprite.Group, screen: pg.Surface):
+        self.enemies = enemies
+        self.bombs = bombs
+        self.screen = screen
+        self.state = "active"
+
+    def activate(self):
+        # 敵機を無効化
+        for enemy in self.enemies:
+            enemy.interval = float('inf')
+            enemy.image = pg.transform.laplacian(enemy.image)
+            enemy.image.set_colorkey((0, 0, 0))
+
+        # 爆弾を無効化
+        for bomb in self.bombs:
+            bomb.state = "inactive"
+            bomb.speed *= 0.5
+        
+        # 画面全体に黄色の矩形を表示
+        overlay = pg.Surface((WIDTH, HEIGHT))
+        overlay.fill((255, 255, 0))
+        overlay.set_alpha(128)
+        self.screen.blit(overlay, (0, 0))
+        pg.display.update()
+        pg.time.delay(50)  # 0.05秒間表示
+
+
 class Shield(pg.sprite.Sprite):
     """
     防御壁に関するクラス
@@ -351,6 +383,7 @@ def main():
     beams = pg.sprite.Group()  # for文を回す必要がなくなるのでこっちを使った方がきれいだし便利
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
+    emp = EMP(emys, bombs, screen)
     shields = pg.sprite.Group()
     grav = pg.sprite.Group()
 
@@ -370,6 +403,9 @@ def main():
                         beams.add(Beam(bird, ang))
                 else:
                     beams.add(Beam(bird))
+            if event.type == pg.KEYDOWN and event.key == pg.K_e and score.value > 20:
+                    emp.activate()
+                    score.value -= 20  # スコアを20消費
                     
             if event.type == pg.KEYDOWN and event.key == pg.K_CAPSLOCK:  # shift+caps lockじゃないと反応しない！
                 if score.value > 50 and len(shields) == 0:
@@ -411,12 +447,16 @@ def main():
         for emy in pg.sprite.groupcollide(bombs, grav, True, False).keys():
             exps.add(Explosion(emy, 100))  # 爆発エフェクト
 
-        if len(pg.sprite.spritecollide(bird, bombs, True)) != 0:  # 一個でも当たっているたら
-            bird.change_img(8, screen) # こうかとん悲しみエフェクト
-            score.update(screen)
-            pg.display.update()
-            time.sleep(2)
-            return
+        for bomb in pg.sprite.spritecollide(bird, bombs, False):
+            if bomb.state == "active":
+                bomb.kill()
+                bird.change_img(8, screen)
+                score.update(screen)
+                pg.display.update()
+                time.sleep(2)
+                return
+            else:
+                bomb.kill()
         
 
 
