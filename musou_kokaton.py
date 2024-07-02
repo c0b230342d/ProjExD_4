@@ -188,7 +188,6 @@ class NeoBeam(pg.sprite.Sprite):
         """
         Beamインスタンスを生成し、リストを返す
         """
-        print(self.ang)
         return self.ang
 
 
@@ -322,7 +321,6 @@ def main():
             time.sleep(2)
             return
         
-        print(beams)
 
         bird.update(key_lst, screen)
         beams.update()
