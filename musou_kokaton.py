@@ -101,13 +101,14 @@ class Bird(pg.sprite.Sprite):
         self.rect.move_ip(self.speed*sum_mv[0], self.speed*sum_mv[1])
         if check_bound(self.rect) != (True, True):
             self.rect.move_ip(-self.speed*sum_mv[0], -self.speed*sum_mv[1])
+        
         if not (sum_mv[0] == 0 and sum_mv[1] == 0):
             self.dire = tuple(sum_mv)
             self.image = self.imgs[self.dire]
         
-        if key_lst[pg.K_RSHIFT]  and score.value>=100:
+        if key_lst[pg.K_RSHIFT]  and score.value>=100 and self.state != 'hyper':
             self.state = 'hyper'
-            # score.value = score.value - 100
+            score.value -= 100
             self.hyper_life=500
         if self.hyper_life==1:
             self.image = self.imgs[self.dire]
@@ -149,9 +150,8 @@ class Bomb(pg.sprite.Sprite):
         爆弾を速度ベクトルself.vx, self.vyに基づき移動させる
         引数 screen：画面Surface
         """
-        self.life -= 1
-        self.image = self.imgs[self.life//10%2]
-        if self.life < 0:
+        self.rect.move_ip(self.speed*self.vx, self.speed*self.vy)
+        if check_bound(self.rect) != (True, True):
             self.kill()
             
 
@@ -282,8 +282,6 @@ def main():
                 return 0
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 beams.add(Beam(bird))
-            if event.type == pg.KEYDOWN and event.key == pg.K_RSHIFT and score.value>=100 :
-                score.value-= 100
                 
         screen.blit(bg_img, [0, 0])
 
